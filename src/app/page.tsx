@@ -2,20 +2,24 @@ import { SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
 import { UploadButton } from "~/utils/uploadthing";
 import { UploadDialog } from "./_components/upload-dialog";
+import { getMyImages } from "~/server/queries";
 
+export const dynamic = "force-dynamic";
 async function Images() {
 
-  const mockUrls = 
-  ["https://images.surferseo.art/84983c66-e859-4bcd-8155-b40faeca38e0.jpeg",
-    "https://wallpaperset.com/w/full/2/5/a/377225.jpg",
-    "https://gz0cmo2jhe.ufs.sh/f/YPRa7ngfiWIsX2rExP9lQCWtqyD3E9JfxSIbGHiNBPzvARZo",
-    "https://gz0cmo2jhe.ufs.sh/f/YPRa7ngfiWIs2DCKPxVXwJUvkRL3zrIoTFthBiQd8NEKjMeP",
-  ];
+  // const mockUrls = 
+  // ["https://images.surferseo.art/84983c66-e859-4bcd-8155-b40faeca38e0.jpeg",
+  //   "https://wallpaperset.com/w/full/2/5/a/377225.jpg",
+  //   "https://gz0cmo2jhe.ufs.sh/f/YPRa7ngfiWIsX2rExP9lQCWtqyD3E9JfxSIbGHiNBPzvARZo",
+  //   "https://gz0cmo2jhe.ufs.sh/f/YPRa7ngfiWIs2DCKPxVXwJUvkRL3zrIoTFthBiQd8NEKjMeP",
+  // ];
 
-  const images = mockUrls.map((url, index) => ({
-  id: index + 1,
-  url,
-  }));
+  // const images = mockUrls.map((url, index) => ({
+  // id: index + 1,
+  // url,
+  // }));
+
+  const images = await getMyImages();
 
   return(
     <div>
@@ -28,7 +32,7 @@ async function Images() {
           <div className="relative aspect-video bg-zinc-900">
 
           <img 
-           src={image.url}
+           src={image.imageUrl}
            alt={'Image ${image.id}'} 
            className="h-full w-full object-contain object-top" 
           />
@@ -55,7 +59,7 @@ export default function HomePage() {
         Welcome Back!
         <Images />
       </div>  
-    </SignedIn>
+    </SignedIn> 
     </main>
   );
 }
