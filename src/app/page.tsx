@@ -71,11 +71,6 @@ export default function HomePage() {
           </div>
         </SignedOut>
       </section>
-
-      {/* Footer */}
-      <footer className="mt-12 border-t border-zinc-800 py-6 text-center text-sm text-zinc-500">
-        © 2025 MangaVault — Made with ❤️ for Anime Fans
-      </footer>
     </main>
   );
 }
