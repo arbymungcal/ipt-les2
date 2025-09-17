@@ -8,25 +8,25 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json({ error: "userId is required" }, { status: 400 });
-    }
-
     const search = searchParams.get("search")?.toLowerCase();
 
-        const userImages = await db.query.images.findMany({
-          where: (model, { eq, ilike, and }) =>
-            and(
-              eq(model.userId, userId),
-              search
-                ? or(
-                    ilike(model.name, `%${search}%`),
-                    ilike(model.email, `%${search}%`)
-                  )
-                : undefined
-            ),
-        });
+    // If userId is provided, filter by userId, else get all images
+    const whereClause = userId
+      ? (model: { userId: any; name: any; email: any; }, { eq, ilike, and }: any) =>
+          and(
+            eq(model.userId, userId),
+            search
+              ? or(
+                  ilike(model.name, `%${search}%`),
+                  ilike(model.email, `%${search}%`)
+                )
+              : undefined
+          )
+      : undefined; // No filter if no userId
+
+    const userImages = await db.query.images.findMany({
+      where: whereClause,
+    });
 
     const enrichedImages = await Promise.all(
       userImages.map(async (img) => {
