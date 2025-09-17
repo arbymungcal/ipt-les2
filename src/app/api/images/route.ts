@@ -1,9 +1,38 @@
-// app/api/images/route.ts in Site A
+import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { images } from "~/server/db/schema";
-import { NextResponse } from "next/server";
+import { clerkClient } from "@clerk/clerk-sdk-node";
 
-export async function GET() {
-  const allImages = await db.select().from(images);
-  return NextResponse.json(allImages);
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    }
+
+    const userImages = await db.query.images.findMany({
+      where: (model, { eq }) => eq(model.userId, userId),
+    });
+
+    const enrichedImages = await Promise.all(
+      userImages.map(async (img) => {
+        const user = await clerkClient.users.getUser(img.userId);
+
+        return {
+          ...img,
+          fullName: [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unknown",
+        };
+      })
+    );
+
+    return NextResponse.json(
+      { images: enrichedImages },
+      { headers: { "Access-Control-Allow-Origin": "*" } }
+    );
+  } catch (err) {
+    console.error("Error fetching images:", err);
+    return NextResponse.json({ error: "Failed to fetch images" }, { status: 500 });
+  }
 }

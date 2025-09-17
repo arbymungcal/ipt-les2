@@ -16,8 +16,11 @@ export const images = createTable(
   "image",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    email: d.varchar({ length: 256 }).notNull(),
+    name: d.varchar({ length: 256 }),
     fileName: d.varchar({ length: 256 }),
     imageName: d.varchar({ length: 256}),
+    description: d.varchar({ length: 512 }), // ✅ ADD THIS
     imageUrl: d.varchar({ length: 1024}).notNull(),
     userId: d.varchar({ length: 64 }).notNull(),
     createdAt: d

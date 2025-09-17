@@ -27,6 +27,10 @@ const formSchema = z.object({
   .string()
   .min(5, { message: "Image Name must be at least 5 characters long"})
   .max(50),
+  description: z
+    .string()
+    .min(10, { message: "Description must be at least 10 characters long"})
+    .max(200),
 });
 
 export function UploadDialog(){
@@ -35,6 +39,7 @@ export function UploadDialog(){
     resolver: zodResolver(formSchema),
     defaultValues: {
       imageName: "",
+      description: "",
     },
   })
 
@@ -85,6 +90,7 @@ export function UploadDialog(){
     const selectedImage = Array.from(inputRef.current.files);
     await startUpload(selectedImage, {
       imageName: form.getValues("imageName"),
+      description: form.getValues("description"),
     });
     setSelectedImageName(null);
     setSelectedImageUrl(null);
@@ -161,31 +167,47 @@ export function UploadDialog(){
               <Input id="username-1" name="username" defaultValue="@peduarte" />
             </div>
           </div> */}
-              <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="imageName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Image Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Image Name" {...field} />
-              </FormControl>
-              {/* <FormDescription>
-                This is your public display name.
-              </FormDescription> */}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-                 <DialogFooter>
-            <Button type="submit" disabled={isUploading}>
-              Submit
-              </Button>
-          </DialogFooter>
-      </form>
-    </Form>
+<Form {...form}>
+  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+    {/* Image Name field */}
+    <FormField
+      control={form.control}
+      name="imageName"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Image Name</FormLabel>
+          <FormControl>
+            <Input placeholder="Image Name" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    {/* Description field */}
+    <FormField
+      control={form.control}
+      name="description"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Description</FormLabel>
+          <FormControl>
+            <Input placeholder="Enter a short description" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    {/* Submit button */}
+    <DialogFooter>
+      <Button type="submit" disabled={isUploading}>
+        Submit
+      </Button>
+    </DialogFooter>
+  </form>
+</Form>
+
 
         </DialogContent>
     </Dialog>
