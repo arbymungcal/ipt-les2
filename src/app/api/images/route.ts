@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { images } from "~/server/db/schema";
 import { clerkClient } from "@clerk/clerk-sdk-node";
+import { or } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
@@ -12,9 +13,20 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
-    const userImages = await db.query.images.findMany({
-      where: (model, { eq }) => eq(model.userId, userId),
-    });
+    const search = searchParams.get("search")?.toLowerCase();
+
+        const userImages = await db.query.images.findMany({
+          where: (model, { eq, ilike, and }) =>
+            and(
+              eq(model.userId, userId),
+              search
+                ? or(
+                    ilike(model.name, `%${search}%`),
+                    ilike(model.email, `%${search}%`)
+                  )
+                : undefined
+            ),
+        });
 
     const enrichedImages = await Promise.all(
       userImages.map(async (img) => {
