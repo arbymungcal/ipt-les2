@@ -1,90 +1,89 @@
 "use client";
 
-import { Upload } from "lucide-react";
+import { Upload, ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { UploadButton, useUploadThing } from "~/utils/uploadthing";
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form"
- 
+} from "~/components/ui/form";
+import { useUploadThing } from "~/utils/uploadthing";
+
 const formSchema = z.object({
   imageName: z
-  .string()
-  .min(5, { message: "Image Name must be at least 5 characters long"})
-  .max(50),
+    .string()
+    .min(5, { message: "Image Name must be at least 5 characters long" })
+    .max(50),
   description: z
     .string()
-    .min(10, { message: "Description must be at least 10 characters long"})
+    .min(10, { message: "Description must be at least 10 characters long" })
     .max(200),
 });
 
-export function UploadDialog(){
+export function UploadDialog() {
   const [open, setOpen] = useState(false);
-   const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       imageName: "",
       description: "",
     },
-  })
+  });
 
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [SelectImageName, setSelectedImageName] = useState<string | null>(null);
+  const [selectedImageName, setSelectedImageName] = useState<string | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?. [0];
+    const file = event.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
-        setSelectedImageName(file.name);
-        setSelectedImageUrl(URL.createObjectURL(file));
-      } else{
-        setSelectedImageName(null);
-        setSelectedImageUrl(null);
-        toast.error('Please select a valid image file.');
-      }
-   };
-    
-   const { startUpload, isUploading} = useUploadThing("imageUploader",{
+      setSelectedImageName(file.name);
+      setSelectedImageUrl(URL.createObjectURL(file));
+    } else {
+      setSelectedImageName(null);
+      setSelectedImageUrl(null);
+      toast.error("Please select a valid image file.");
+    }
+  };
+
+  const { startUpload, isUploading } = useUploadThing("imageUploader", {
     onUploadBegin: () => {
-      toast(
-        <div className="flex items-center gap2">
-          <span className="text-lg"> Uploading...</span>
-        </div>,
-        {
-          duration: 100000,
-          id:"upload-begin",
-        }
-      );
+      toast.loading("Uploading...", { duration: 100000, id: "upload-begin" });
     },
     onUploadError: () => {
       toast.dismiss("upload-begin");
-      toast.error(<span className="text-lg">Upload Error</span>);
+      toast.error("Upload Error");
     },
     onClientUploadComplete: () => {
       toast.dismiss("upload-begin");
-      toast.success(<span className="textlg">Upload Complete!</span>);
+      toast.success("Upload Complete!");
       router.refresh();
     },
-   });
+  });
 
-   const handleImageUpload = async () => {
-    if (!inputRef.current?.files?.length){
-      toast.warning(<span className="text-lg">No File Selected!</span>);
+  const handleImageUpload = async () => {
+    if (!inputRef.current?.files?.length) {
+      toast.warning("No File Selected!");
       return;
     }
     const selectedImage = Array.from(inputRef.current.files);
@@ -94,123 +93,112 @@ export function UploadDialog(){
     });
     setSelectedImageName(null);
     setSelectedImageUrl(null);
-   };
+  };
 
-   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values);
     setOpen(false);
     await handleImageUpload();
-   }
+  }
 
-
-   
-    return(
-      //   <UploadButton
-      //   endpoint="imageUploader"
-      //   onClientUploadComplete={(res) => {
-      //     // Do something with the response
-      //     console.log("Files: ", res);
-      //     //alert("Upload Completed");
-      //     toast.success("Upload Completed");
-      //     router.refresh();
-      //   }}
-      //   onUploadError={(error: Error) => {
-      //     // Do something with the error.
-      //     //alert(`ERROR! ${error.message}`);
-      //     toast.error('ERROR! ${error.message}');
-      //   }}
-      // />
+  return (
     <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline">Upload Image</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Upload Image</DialogTitle>
-            <DialogDescription>
-              Select an image to upload. Click save when you&apos;re done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-2">
-            {selectedImageUrl !== null && (
-              <div>
-                <img 
+      <DialogTrigger asChild>
+        <Button variant="default" className="gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:opacity-90">
+          <Upload className="h-4 w-4" /> Upload Image
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-[480px] rounded-2xl shadow-xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Upload Image</DialogTitle>
+          <DialogDescription className="text-gray-500">
+            Choose an image, add details, and submit to upload.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4">
+          {/* Image Preview */}
+          {selectedImageUrl ? (
+            <div className="overflow-hidden rounded-lg border border-gray-200 shadow-md">
+              <img
                 src={selectedImageUrl}
-                alt={SelectImageName || "selected Image"}
-                className="w-full rounded-md object-cover"
-                />
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <Button 
-               variant={"outline"} 
-               onClick={() => inputRef.current?.click()}
-              >
-                <Upload />
-              </Button>
-              <input type="file" ref={inputRef} className="sr-only" accept="image"
-              onChange={handleImageSelect}
+                alt={selectedImageName || "Selected Image"}
+                className="w-full max-h-[240px] object-cover"
               />
-              {setSelectedImageName !== null && (
-                <div>Selected Image: {SelectImageName} </div>
-              )}
+              <div className="p-2 text-center text-sm text-gray-600">
+                {selectedImageName}
+              </div>
             </div>
+          ) : (
+            <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400">
+              <ImageIcon className="h-10 w-10" />
+              <span className="ml-2">No image selected</span>
+            </div>
+          )}
+
+          {/* File Input */}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => inputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4" /> Select File
+            </Button>
+            <input
+              type="file"
+              ref={inputRef}
+              className="sr-only"
+              accept="image/*"
+              onChange={handleImageSelect}
+            />
           </div>
-          {/* <div className="grid gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="name-1">Name</Label>
-              <Input id="name-1" name="name" defaultValue="Pedro Duarte" />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="username-1">Username</Label>
-              <Input id="username-1" name="username" defaultValue="@peduarte" />
-            </div>
-          </div> */}
-<Form {...form}>
-  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-    {/* Image Name field */}
-    <FormField
-      control={form.control}
-      name="imageName"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Image Name</FormLabel>
-          <FormControl>
-            <Input placeholder="Image Name" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+        </div>
 
-    {/* Description field */}
-    <FormField
-      control={form.control}
-      name="description"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Description</FormLabel>
-          <FormControl>
-            <Input placeholder="Enter a short description" {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+        {/* Form */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+            <FormField
+              control={form.control}
+              name="imageName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">Image Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter a title for your image" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
 
-    {/* Submit button */}
-    <DialogFooter>
-      <Button type="submit" disabled={isUploading}>
-        Submit
-      </Button>
-    </DialogFooter>
-  </form>
-</Form>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">Description</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter a short description" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
 
-
-        </DialogContent>
+            <DialogFooter>
+              <Button
+                type="submit"
+                disabled={isUploading}
+                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white hover:opacity-90 shadow-md"
+              >
+                {isUploading ? "Uploading..." : "Submit"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
     </Dialog>
-    );
-
+  );
 }
